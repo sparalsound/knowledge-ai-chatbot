@@ -1,0 +1,13 @@
+# scratch 디버그 파일들 (GitHub에 올릴 필요 없음)
+scratch_*.js
+scratch_*.ps1
+
+# n8n 워크플로우 JSON (민감 정보 포함 가능)
+active_workflow.json
+chatbot_workflow.json
+n8n_workflows.json
+
+# 기타
+*.ps1
+AGENTS.md
+create_workflows.ps1

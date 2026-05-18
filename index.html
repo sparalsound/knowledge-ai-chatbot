@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>아 그저그런 챗봇이랑께</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar / Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon"><i class="ri-robot-2-fill"></i></div>
+                <h1>Knowledge AI</h1>
+            </div>
+            <div class="theme-toggle" id="themeToggle">
+                <i class="ri-moon-fill dark-icon"></i>
+                <i class="ri-sun-fill light-icon"></i>
+            </div>
+        </header>
+
+        <!-- Chat Area -->
+        <main class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <!-- Welcome Message -->
+                <div class="message bot">
+                    <div class="avatar"><i class="ri-robot-2-line"></i></div>
+                    <div class="message-content">
+                        <p>안녕하세요!  당신이 업로드한 매뉴얼을 기반으로 답변하는 그저그런 챗봇입니다.</p>
+                        <span class="time">Just now</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <textarea id="userInput" placeholder="모 궁금한게 있어면...물어보든가..." rows="1"></textarea>
+                    <button id="sendBtn" class="send-btn" disabled>
+                        <i class="ri-send-plane-fill"></i>
+                    </button>
+                </div>
+                <div class="footer-text">AI는 실수할 수 있으므로 중요한 정보는 원본 매뉴얼을 확인해주세요.</div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Webhook Settings Modal -->
+    <div class="settings-panel">
+        <button class="settings-toggle" id="settingsToggle" title="설정">
+            <i class="ri-settings-3-line"></i>
+        </button>
+        <div class="settings-content" id="settingsContent">
+            <h3>Webhook 설정</h3>
+            <p>n8n Webhook URL을 입력해주세요.</p>
+            <input type="text" id="webhookUrl" placeholder="http://localhost:5678/webhook/chat" value="http://localhost:5678/webhook/chat">
+            <button id="saveWebhookBtn">저장</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
