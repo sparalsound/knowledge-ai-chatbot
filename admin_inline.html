@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지식 베이스 관리자 제어창</title>
+    <style>
+:root {
+    --bg-color: #0b0f19;
+    --card-bg: #151d30;
+    --sidebar-bg: #0f1422;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --primary-color: #6366f1;
+    --primary-hover: #4f46e5;
+    
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --info-color: #3b82f6;
+    --danger-color: #ef4444;
+    
+    --glass-bg: rgba(21, 29, 48, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.05);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Password Gate */
+.password-gate {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle at center, #1e1b4b 0%, #030712 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.password-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 40px;
+    border-radius: 24px;
+    width: 400px;
+    box-shadow: var(--glass-shadow);
+    text-align: center;
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+.password-logo {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--primary-color), #a855f7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 2rem;
+    margin: 0 auto 24px auto;
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+}
+
+.password-card h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+}
+
+.password-card p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 32px;
+}
+
+.password-card input {
+    width: 100%;
+    padding: 14px 20px;
+    border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.03);
+    color: var(--text-primary);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    font-size: 1rem;
+    outline: none;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.password-card input:focus {
+    border-color: var(--primary-color);
+    background: rgba(255,255,255,0.06);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+}
+
+.password-card button {
+    width: 100%;
+    padding: 14px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.password-card button:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+}
+
+.gate-error-msg {
+    color: var(--danger-color);
+    font-size: 0.85rem;
+    margin-top: 16px;
+    display: none;
+}
+
+/* Admin App Structure */
+.admin-container {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* Sidebar Styling */
+.admin-sidebar {
+    width: 280px;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.sidebar-brand {
+    padding: 32px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.brand-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary-color), #a855f7);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.3rem;
+}
+
+.sidebar-brand h1 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.sidebar-brand span {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.sidebar-nav {
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.95rem;
+    border-radius: 12px;
+    font-weight: 500;
+    transition: all 0.25s ease;
+}
+
+.nav-item:hover {
+    color: var(--text-primary);
+    background: rgba(255,255,255,0.02);
+}
+
+.nav-item.active {
+    color: white;
+    background: var(--primary-color);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25);
+}
+
+.sidebar-footer {
+    padding: 24px;
+    border-top: 1px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.connection-status {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4b5563;
+    display: inline-block;
+}
+
+.status-indicator.online {
+    background: var(--success-color);
+    box-shadow: 0 0 8px var(--success-color);
+}
+
+.logout-btn {
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+    color: var(--text-primary);
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+/* Main Content Area */
+.admin-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+.admin-header {
+    padding: 24px 40px;
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-title h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.header-title p {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-top: 4px;
+}
+
+/* Buttons */
+.btn {
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.25s ease;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn-success {
+    background: var(--success-color);
+    color: white;
+}
+
+.btn-success:hover {
+    background: #059669;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-secondary {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
+.btn-secondary:hover {
+    background: rgba(239, 68, 68, 0.25);
+    color: white;
+}
+
+/* Tabs */
+.tab-content {
+    display: none;
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.tab-content.active {
+    display: flex;
+}
+
+/* Stats Cards */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.stat-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.stat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.stat-icon.original { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+.stat-icon.new { background: linear-gradient(135deg, #a855f7, #c084fc); }
+.stat-icon.qdrant { background: linear-gradient(135deg, #10b981, #34d399); }
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.stat-val {
+    font-size: 1.6rem;
+    font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+    margin: 4px 0;
+}
+
+.stat-sub {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+/* Info Blocks */
+.info-blocks-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+.info-block {
+    background: rgba(255,255,255,0.01);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.block-header h4 {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.badge {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.badge-original { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+.badge-new { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+
+.block-body p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 8px;
+}
+
+.block-body code {
+    background: rgba(255,255,255,0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    color: #f472b6;
+}
+
+/* Manual Table Layout */
+.table-container {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: var(--glass-shadow);
+}
+
+.table-toolbar {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--glass-border);
+    background: rgba(0,0,0,0.1);
+}
+
+.selection-info {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.manual-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.manual-table th, .manual-table td {
+    padding: 16px 24px;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.manual-table th {
+    background: rgba(0,0,0,0.15);
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
+
+.manual-table tbody tr {
+    transition: background 0.2s ease;
+}
+
+.manual-table tbody tr:hover {
+    background: rgba(255,255,255,0.02);
+}
+
+/* Table Checkboxes */
+.manual-table input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    accent-color: var(--primary-color);
+    cursor: pointer;
+}
+
+/* Status Labels */
+.status-badge {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.status-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-badge.synced {
+    background: rgba(16, 185, 129, 0.1);
+    color: #34d399;
+}
+.status-badge.synced::before { background: var(--success-color); }
+
+.status-badge.update-needed {
+    background: rgba(245, 158, 11, 0.1);
+    color: #fbbf24;
+}
+.status-badge.update-needed::before { background: var(--warning-color); }
+
+.status-badge.new {
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+}
+.status-badge.new::before { background: var(--info-color); }
+
+.status-badge.process {
+    background: rgba(99, 102, 241, 0.15);
+    color: #818cf8;
+}
+.status-badge.process::before {
+    background: var(--primary-color);
+    animation: blink 1s infinite;
+}
+@keyframes blink {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+}
+
+/* Floating Action Bar */
+.action-bar {
+    position: absolute;
+    bottom: 240px; /* Above console */
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(21, 29, 48, 0.9);
+    border: 1px solid var(--primary-color);
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 16px 32px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    z-index: 100;
+    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.action-bar-info {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.action-bar-btns {
+    display: flex;
+    gap: 12px;
+}
+
+/* Console Log Panel */
+.console-panel {
+    height: 200px;
+    background: #05070f;
+    border-top: 1px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.console-header {
+    background: #090c15;
+    padding: 10px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.console-title {
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.clear-console-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+}
+
+.clear-console-btn:hover {
+    color: var(--danger-color);
+}
+
+.console-body {
+    flex: 1;
+    padding: 16px 24px;
+    overflow-y: auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.console-body::-webkit-scrollbar {
+    width: 6px;
+}
+.console-body::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+}
+
+.log-line {
+    line-height: 1.4;
+    word-break: break-all;
+}
+
+.log-line.info { color: #94a3b8; }
+.log-line.success { color: #34d399; }
+.log-line.warn { color: #fbbf24; }
+.log-line.error { color: #f87171; }
+.log-line.process { color: #60a5fa; }
+
+/* Animations */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translate(-50%, 40px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+
+.team-layout-grid {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 24px;
+    height: 100%;
+}
+.team-config-panel {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: fit-content;
+}
+.team-config-panel h3 {
+    font-size: 1.1rem;
+    color: var(--primary-color);
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 12px;
+}
+.team-config-panel label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+.team-config-panel input, .team-config-panel textarea {
+    width: 100%;
+    padding: 10px 14px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--glass-border);
+    color: white;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+}
+.team-config-panel input:focus, .team-config-panel textarea:focus {
+    border-color: var(--primary-color);
+    outline: none;
+}
+.team-config-panel .btn-save {
+    margin-top: 10px;
+    width: 100%;
+    justify-content: center;
+}
+
+
+.global-loading-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(4px);
+    z-index: 99999;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+.global-loading-overlay.active {
+    display: flex;
+}
+.global-loading-overlay .spinner {
+    font-size: 4rem;
+    color: var(--primary-color);
+    margin-bottom: 24px;
+    animation: spin 1s linear infinite;
+}
+.global-loading-overlay .message {
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+.global-loading-overlay .sub-message {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 12px;
+}
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+
+.btn-warning {
+    background: #f59e0b;
+    border-color: #f59e0b;
+    color: white;
+}
+.btn-warning:hover {
+    background: #d97706;
+}
+    
+</style>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="global-loading-overlay" id="globalLoadingOverlay">
+    <i class="ri-loader-4-line spinner"></i>
+    <div class="message" id="globalLoadingMessage">작업을 처리 중입니다.</div>
+    <div class="sub-message">완료될 때까지 이 화면을 닫거나 다른 버튼을 누르지 마세요.</div>
+</div>
+
+    <!-- Password Gate -->
+    <div id="passwordGate" class="password-gate">
+        <div class="password-card">
+            <div class="password-logo"><i class="ri-shield-user-fill"></i></div>
+            <h2>BR Team 챗봇</h2>
+            <p>관리자 비밀번호를 입력해주세요.</p>
+            <input type="password" id="gatePasswordInput" placeholder="비밀번호 입력...">
+            <button id="gateSubmitBtn">로그인</button>
+            <div id="gateErrorMsg" class="gate-error-msg">비밀번호가 일치하지 않습니다.</div>
+        </div>
+    </div>
+
+    <!-- Main Admin Container -->
+    <div class="admin-container hidden" id="adminContainer">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon"><i class="ri-settings-4-fill"></i></div>
+                <div>
+                    <h1>BR Team 챗봇</h1>
+                    <span>Knowledge Base Admin</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav" id="sidebarNav">
+                <a href="#" class="nav-item active" data-tab="dashboard">
+                    <i class="ri-dashboard-line"></i> 대시보드
+                </a>
+                
+                <div style="margin: 10px 0; border-bottom: 1px solid var(--glass-border);"></div>
+                <!-- Dynamic nav items will be appended here -->
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="connection-status">
+                    <div class="status-item">
+                        <span class="status-indicator online" id="notionStatusLamp"></span>
+                        <span>Notion API 연결됨</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-indicator online" id="qdrantStatusLamp"></span>
+                        <span>Qdrant 연결됨</span>
+                    </div>
+                </div>
+                <button id="logoutBtn" class="logout-btn"><i class="ri-logout-box-r-line"></i> 로그아웃</button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="admin-main">
+            <!-- Header -->
+            <header class="admin-header">
+                <div class="header-title">
+                    <h2 id="currentTabTitle">대시보드</h2>
+                    <p id="currentTabDesc">지식 베이스 동기화 및 학습 상태 관리</p>
+                </div>
+                <div class="header-actions">
+                    <button id="refreshAllBtn" class="btn btn-primary">
+                        <i class="ri-refresh-line"></i> 전체 상태 새로고침
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Tab Content -->
+            
+            <section class="tab-content active" id="tabContent-dashboard">
+                <!-- Status Cards -->
+                <div class="stats-grid" id="statsGrid" style="grid-template-columns: repeat(2, 1fr);">
+                    <div class="stat-card" id="totalBoardsCard">
+                        <div class="stat-icon new" style="background: linear-gradient(135deg, var(--primary-color), #a855f7);"><i class="ri-dashboard-line"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label">총 생성된 관리게시판 수</span>
+                            <h3 class="stat-val" id="count-total-boards">0 개</h3>
+                            <span class="stat-sub">현재 연동된 전체 보드</span>
+                        </div>
+                    </div>
+                    <div class="stat-card" id="qdrantStatCard">
+                        <div class="stat-icon qdrant"><i class="ri-cpu-line"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label">Qdrant 총 청크(벡터) 수</span>
+                            <h3 class="stat-val" id="count-qdrant-vectors">0 개</h3>
+                            <span class="stat-sub">임베딩 차원: 3072</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 10px;">
+                    <h3 style="margin-bottom: 16px; font-size: 1.1rem; color: var(--text-primary); border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;">개별 보드 현황 요약</h3>
+                    <div class="info-blocks-grid" id="dashboardBoardsList" style="grid-template-columns: 1fr; gap: 12px;">
+                        <!-- Dynamic board cards will be appended here -->
+                    </div>
+                </div>
+            </section>
+        
+
+            
+
+            <!-- Dynamic Tab Contents Container -->
+            <div id="dynamicTabContentsContainer"></div>
+
+            <!-- Action Bar (Floating at the bottom) -->
+            <div class="action-bar hidden" id="actionBar">
+                <div class="action-bar-info">
+                    <span id="selectedCountText">0개 항목이 선택됨</span>
+                </div>
+                <div class="action-bar-btns">
+                    <button class="btn btn-secondary" id="btnDeleteSelected">
+                        <i class="ri-delete-bin-line"></i> Qdrant에서 완전히 삭제
+                    </button>
+                    <button class="btn btn-success" id="btnSyncSelected">
+                        <i class="ri-play-line"></i> 선택한 매뉴얼 동기화 시작
+                    </button>
+                </div>
+            </div>
+
+            <!-- Console Log Panel -->
+            <div class="console-panel">
+                <div class="console-header">
+                    <div class="console-title"><i class="ri-terminal-box-line"></i> 동기화 로그 콘솔</div>
+                    <button id="clearConsoleBtn" class="clear-console-btn"><i class="ri-delete-bin-7-line"></i></button>
+                </div>
+                <div class="console-body" id="consoleLogs">
+                    <div class="log-line info">관리자 로그인 성공. 대기 중...</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+window.onerror = function(message, source, lineno, colno, error) {
+    alert("자바스크립트 오류 발생: " + message + " (줄: " + lineno + ", 열: " + colno + ")");
+    console.error(error || message);
+    return false;
+};
+
+
+
+function showGlobalLoading(msg) {
+    const overlay = document.getElementById('globalLoadingOverlay');
+    const msgEl = document.getElementById('globalLoadingMessage');
+    if(msgEl && msg) msgEl.textContent = msg;
+    if(overlay) overlay.classList.add('active');
+}
+function hideGlobalLoading() {
+    const overlay = document.getElementById('globalLoadingOverlay');
+    if(overlay) overlay.classList.remove('active');
+}
+
+function startAdmin() {
+    // API Webhook Setup
+    const ADMIN_API_URL = window.location.origin + "/webhook/admin-api";
+    
+    // Auth & Gate elements
+    const passwordGate = document.getElementById('passwordGate');
+    const gatePasswordInput = document.getElementById('gatePasswordInput');
+    const gateSubmitBtn = document.getElementById('gateSubmitBtn');
+    const gateErrorMsg = document.getElementById('gateErrorMsg');
+    const adminContainer = document.getElementById('adminContainer');
+    
+    // Dynamic Containers
+    const sidebarNav = document.getElementById('sidebarNav');
+    const statsGrid = document.getElementById('statsGrid');
+    const qdrantStatCard = document.getElementById('qdrantStatCard');
+    const infoBlocksGrid = document.getElementById('infoBlocksGrid');
+    const dynamicTabContentsContainer = document.getElementById('dynamicTabContentsContainer');
+    
+    // Header elements
+    const currentTabTitle = document.getElementById('currentTabTitle');
+    const currentTabDesc = document.getElementById('currentTabDesc');
+    const notionStatusLamp = document.getElementById('notionStatusLamp');
+    const qdrantStatusLamp = document.getElementById('qdrantStatusLamp');
+    const countQdrantVectors = document.getElementById('count-qdrant-vectors');
+    
+    // Action bar elements
+    const actionBar = document.getElementById('actionBar');
+    const selectedCountText = document.getElementById('selectedCountText');
+    const btnSyncSelected = document.getElementById('btnSyncSelected');
+    const btnDeleteSelected = document.getElementById('btnDeleteSelected');
+    
+    // Console elements
+    const consoleLogs = document.getElementById('consoleLogs');
+    const clearConsoleBtn = document.getElementById('clearConsoleBtn');
+    const refreshAllBtn = document.getElementById('refreshAllBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    // State Variables
+    let teamsData = [];
+    let selectedManuals = new Set(); // Stores composite key "teamId:pageId"
+    let syncingManuals = new Set(); // Stores composite key "teamId:pageId" of actively syncing manuals
+    let currentActiveTab = 'dashboard';
+
+    // 1. Password Verification Gate
+    const adminAuthKey = 'chatbot_admin_authenticated';
+    
+    let isAuthenticated = false;
+    try {
+        isAuthenticated = (sessionStorage.getItem(adminAuthKey) === 'true');
+    } catch (e) {
+        console.warn("sessionStorage reading disabled:", e);
+    }
+
+    if (isAuthenticated) {
+        unlockGate();
+    }
+
+    if (gateSubmitBtn) {
+        gateSubmitBtn.addEventListener('click', verifyPassword);
+    }
+    if (gatePasswordInput) {
+        gatePasswordInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') verifyPassword();
+        });
+    }
+
+    function verifyPassword() {
+        try {
+            if (!gatePasswordInput) {
+                throw new Error("Password input element not found in DOM");
+            }
+            const password = gatePasswordInput.value.trim().toUpperCase();
+            if (password === 'ITITIT') {
+                try {
+                    sessionStorage.setItem(adminAuthKey, 'true');
+                } catch (e) {
+                    console.warn("sessionStorage writing disabled:", e);
+                }
+                unlockGate();
+            } else {
+                if (gateErrorMsg) gateErrorMsg.style.display = 'block';
+                gatePasswordInput.value = '';
+                gatePasswordInput.focus();
+            }
+        } catch (err) {
+            alert("로그인 처리 중 오류 발생: " + err.message);
+            console.error(err);
+        }
+    }
+
+    function unlockGate() {
+        try {
+            if (passwordGate) passwordGate.classList.add('hidden');
+            if (adminContainer) adminContainer.classList.remove('hidden');
+            addLog('관리자 세션 로그인 성공.', 'success');
+            refreshAllState();
+        } catch (err) {
+            alert("대시보드 표시 중 오류 발생: " + err.message);
+            console.error(err);
+        }
+    }
+
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            try {
+                sessionStorage.removeItem(adminAuthKey);
+            } catch (e) {
+                console.warn("sessionStorage clearing disabled:", e);
+            }
+            window.location.reload();
+        });
+    }
+
+    // Dynamic Binding helper for Tabs
+    function bindTabEvents() {
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            // Remove previous event listener if any, by cloning or just setting a new one carefully
+            // The simplest is to replace with clone or use onclick
+            item.onclick = (e) => {
+                e.preventDefault();
+                const tabName = item.getAttribute('data-tab');
+                switchTab(tabName);
+            };
+        });
+    }
+
+    function switchTab(tabName) {
+        currentActiveTab = tabName;
+        
+        // Update nav UI
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            if (item.getAttribute('data-tab') === tabName) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+
+        // Update content UI
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabContents.forEach(content => {
+            if (content.id === `tabContent-${tabName}`) {
+                content.classList.add('active');
+            } else {
+                content.classList.remove('active');
+            }
+        });
+
+        // Update header titles
+        if (tabName === 'dashboard') {
+            currentTabTitle.textContent = '대시보드';
+            currentTabDesc.textContent = '지식 베이스 동기화 및 학습 상태 관리';
+        } else {
+            const team = teamsData.find(t => t.id === tabName);
+            if (team) {
+                currentTabTitle.textContent = team.name;
+                currentTabDesc.textContent = `Notion DB: ${team.dbId} 상태 관리 (team=${team.id})`;
+            }
+        }
+
+        clearSelections();
+    }
+
+    // 3. Logger helper
+    function addLog(message, type = 'info') {
+        const time = new Date().toLocaleTimeString();
+        const line = document.createElement('div');
+        line.className = `log-line ${type}`;
+        line.textContent = `[${time}] ${message}`;
+        consoleLogs.appendChild(line);
+        consoleLogs.scrollTop = consoleLogs.scrollHeight;
+    }
+
+    clearConsoleBtn.addEventListener('click', () => {
+        consoleLogs.innerHTML = '';
+        addLog('로그 콘솔 초기화됨.');
+    });
+
+    // 4. API Actions
+    refreshAllBtn.addEventListener('click', refreshAllState);
+
+    async function refreshAllState() {
+        addLog('데이터베이스 및 지식베이스 상태 동기화 분석을 시작합니다...', 'process');
+        
+        notionStatusLamp.className = 'status-indicator';
+        qdrantStatusLamp.className = 'status-indicator';
+        
+        try {
+            const response = await fetch(ADMIN_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'list_all_manuals' })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.status} ${await response.text()}`);
+            }
+
+            const data = await response.json();
+            
+            notionStatusLamp.className = 'status-indicator online';
+            qdrantStatusLamp.className = 'status-indicator online';
+            
+            teamsData = data.teams || [];
+            
+            renderDynamicUI(data);
+            
+            addLog('모든 상태 조회가 성공적으로 완료되었습니다.', 'success');
+        } catch (err) {
+            addLog(`조회 오류 발생: ${err.message}`, 'error');
+            console.error(err);
+        }
+    }
+
+    function renderDynamicUI(data) {
+        // 1. Clear dynamic containers
+        const navDashboardNode = document.querySelector('.nav-item[data-tab="dashboard"]').cloneNode(true);
+        const sidebarNav = document.getElementById('sidebarNav');
+        sidebarNav.innerHTML = '';
+        sidebarNav.appendChild(navDashboardNode);
+        
+        const dashboardBoardsList = document.getElementById('dashboardBoardsList');
+        if (dashboardBoardsList) dashboardBoardsList.innerHTML = '';
+        
+        const dynamicTabContentsContainer = document.getElementById('dynamicTabContentsContainer');
+        dynamicTabContentsContainer.innerHTML = '';
+        
+        const countTotalBoards = document.getElementById('count-total-boards');
+        if (countTotalBoards) countTotalBoards.textContent = teamsData.length + " 개";
+        
+        // 2. Build for each team
+        teamsData.forEach((team, idx) => {
+            const manuals = team.manuals || [];
+            const syncedCount = manuals.filter(m => m.status === '동기화 완료').length;
+            
+            // --- Dashboard Board Card (1 col layout) ---
+            if (dashboardBoardsList) {
+                const boardCard = document.createElement('div');
+                boardCard.className = 'info-block';
+                boardCard.style = 'display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; cursor: pointer; transition: background 0.2s;';
+                boardCard.onclick = () => { document.querySelector(`.nav-item[data-tab="${team.id}"]`).click(); };
+                boardCard.onmouseover = () => boardCard.style.background = 'rgba(255,255,255,0.05)';
+                boardCard.onmouseout = () => boardCard.style.background = 'rgba(255,255,255,0.01)';
+                
+                const badgeClass = idx % 2 === 0 ? 'badge-original' : 'badge-new';
+                boardCard.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <div class="stat-icon" style="width: 44px; height: 44px; font-size: 1.2rem; background: ${idx % 2 === 0 ? 'linear-gradient(135deg, #3b82f6, #60a5fa)' : 'linear-gradient(135deg, #a855f7, #c084fc)'}">
+                            <i class="${idx % 2 === 0 ? 'ri-folders-line' : 'ri-folder-add-line'}"></i>
+                        </div>
+                        <div>
+                            <h4 style="font-size: 1rem; margin-bottom: 4px;">${escapeHTML(team.name)}</h4>
+                            <span class="badge ${badgeClass}" style="font-size: 0.7rem;">${escapeHTML(team.dbId)}</span>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 1.1rem; font-weight: 700;">총 ${manuals.length}개 매뉴얼</div>
+                        <div style="font-size: 0.8rem; color: var(--success-color);">${syncedCount}개 동기화 완료</div>
+                    </div>
+                `;
+                dashboardBoardsList.appendChild(boardCard);
+            }
+            
+            // --- Navigation ---
+            const navA = document.createElement('a');
+            navA.href = '#';
+            navA.className = 'nav-item';
+            navA.setAttribute('data-tab', team.id);
+            // Alternate icons for variety
+            const iconClass = idx % 2 === 0 ? 'ri-database-2-line' : 'ri-database-line';
+            navA.innerHTML = `<i class="${iconClass}"></i> ${escapeHTML(team.name)}`;
+            sidebarNav.appendChild(navA);
+            
+            
+            
+            
+            
+            // --- Table Section ---
+            
+            const section = document.createElement('section');
+            section.className = 'tab-content';
+            section.id = `tabContent-${team.id}`;
+            
+            const clientUrl = window.location.origin + "/webhook/chat?team=" + team.id;
+            
+            section.innerHTML = `
+                <div class="team-layout-grid">
+                    <!-- Left Column: Config -->
+                    <div class="team-config-panel">
+                        <h3><i class="ri-settings-4-line"></i> 챗봇 설정</h3>
+                        
+                        <div>
+                            <label>접속 URL (사용자 배포용)</label>
+                            <input type="text" readonly value="${clientUrl}" style="background: rgba(0,0,0,0.4); color: var(--text-secondary); cursor: copy;" onclick="this.select(); document.execCommand('copy'); alert('URL이 복사되었습니다.');">
+                        </div>
+
+                        <div>
+                            <label>챗봇 표시 이름</label>
+                            <input type="text" id="cfg-botname-${team.id}" value="${escapeHTML(team.botName || '')}" placeholder="예: ${escapeHTML(team.name)} 챗봇">
+                        </div>
+                        
+                        <div>
+                            <label>접속 비밀번호</label>
+                            <input type="password" id="cfg-pw-${team.id}" value="${escapeHTML(team.password || '')}" placeholder="비워두면 공개 접속">
+                        </div>
+                        
+                        <div>
+                            <label>첫 안내 문구 (인사말)</label>
+                            <textarea id="cfg-welcome-${team.id}" rows="3" placeholder="예: 안녕하세요! 무엇을 도와드릴까요?">${escapeHTML(team.welcomeMessage || '')}</textarea>
+                        </div>
+                        
+                        <button class="btn btn-primary btn-save" onclick="saveTeamConfig('${team.id}')">
+                            <i class="ri-save-line"></i> 설정 저장
+                        </button>
+                    </div>
+
+                    <!-- Right Column: Sync Table -->
+                    <div class="table-container" style="display: flex; flex-direction: column; height: 100%;">
+                        <div class="table-toolbar">
+                            <div class="selection-info" id="selectionInfo-${team.id}">선택된 항목 없음</div>
+                            <button class="btn btn-warning" onclick="fullSyncTeam('${team.id}')" style="margin-left:auto;">
+                                <i class="ri-refresh-line"></i> 부서 전체 강제 재동기화 (Full Sync)
+                            </button>
+                        </div>
+                        <div style="flex: 1; overflow-y: auto;">
+                            <table class="manual-table">
+                                <thead>
+                                    <tr>
+                                        <th width="40"><input type="checkbox" class="select-all-cb" data-team="${team.id}"></th>
+                                        <th>매뉴얼 이름</th>
+                                        <th>첨부파일명</th>
+                                        <th>마지막 수정일(Notion)</th>
+                                        <th>동기화 상태</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="manualList-${team.id}"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            dynamicTabContentsContainer.appendChild(section);
+        
+            
+            // Populate Table Rows
+            const tbody = document.getElementById(`manualList-${team.id}`);
+            if (manuals.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">매뉴얼 항목이 없습니다.</td></tr>`;
+            } else {
+                manuals.forEach(m => {
+                    const tr = document.createElement('tr');
+                    
+                    const key = `${team.id}:${m.id}`;
+                    let badgeHtml = '';
+                    if (syncingManuals.has(key) && m.status !== '동기화 완료') {
+                        badgeHtml = `<span class="status-badge process"><i class="ri-loader-4-line ri-spin"></i> 동기화 중...</span>`;
+                    } else {
+                        let statusClass = 'new';
+                        if (m.status === '동기화 완료') statusClass = 'synced';
+                        if (m.status === '업데이트 필요') statusClass = 'update-needed';
+                        badgeHtml = `<span class="status-badge ${statusClass}">${m.status}</span>`;
+                    }
+                    
+                    const dateStr = m.lastEditedTime ? new Date(m.lastEditedTime).toLocaleString() : 'N/A';
+                    const chunkInfo = m.chunks > 0 ? `<br><small style="color: var(--text-secondary); opacity: 0.8;">(${m.chunks}개 청크)</small>` : '';
+
+                    tr.innerHTML = `
+                        <td><input type="checkbox" class="manual-checkbox" data-team="${team.id}" data-id="${m.id}" data-title="${escapeHTML(m.title)}"></td>
+                        <td style="font-weight: 600;">${escapeHTML(m.title)}</td>
+                        <td>${escapeHTML(m.fileName)}</td>
+                        <td>${dateStr}</td>
+                        <td>${badgeHtml} ${chunkInfo}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+            
+            
+        });
+        
+        // Update Qdrant vectors count
+        countQdrantVectors.textContent = `${data.qdrantPointsCount || 0} 개`;
+        
+        // Bind dynamic events
+        bindTabEvents();
+        bindCheckboxEvents();
+        
+        // Restore active tab
+        switchTab(currentActiveTab);
+    }
+
+    function bindCheckboxEvents() {
+        // Individual checkboxes
+        const checkboxes = document.querySelectorAll('.manual-checkbox');
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', (e) => {
+                const tId = e.target.getAttribute('data-team');
+                const pId = e.target.getAttribute('data-id');
+                const key = `${tId}:${pId}`;
+                if (e.target.checked) selectedManuals.add(key);
+                else selectedManuals.delete(key);
+                updateActionBarState();
+            });
+        });
+
+        // Select All checkboxes
+        const selectAllCbs = document.querySelectorAll('.select-all-cb');
+        selectAllCbs.forEach(allCb => {
+            allCb.addEventListener('change', (e) => {
+                const tId = e.target.getAttribute('data-team');
+                const isChecked = e.target.checked;
+                const tbody = document.getElementById(`manualList-${tId}`);
+                if (!tbody) return;
+                
+                const cbs = tbody.querySelectorAll('.manual-checkbox');
+                cbs.forEach(cb => {
+                    cb.checked = isChecked;
+                    const pId = cb.getAttribute('data-id');
+                    const key = `${tId}:${pId}`;
+                    if (isChecked) selectedManuals.add(key);
+                    else selectedManuals.delete(key);
+                });
+                updateActionBarState();
+            });
+        });
+    }
+
+    function clearSelections() {
+        selectedManuals.clear();
+        document.querySelectorAll('.select-all-cb').forEach(cb => cb.checked = false);
+        document.querySelectorAll('.manual-checkbox').forEach(cb => cb.checked = false);
+        updateActionBarState();
+    }
+
+    function updateActionBarState() {
+        if (selectedManuals.size > 0) {
+            actionBar.classList.remove('hidden');
+            selectedCountText.textContent = `${selectedManuals.size}개 매뉴얼 선택됨`;
+        } else {
+            actionBar.classList.add('hidden');
+        }
+        
+        // Update individual table selection texts
+        teamsData.forEach(team => {
+            const el = document.getElementById(`selectionInfo-${team.id}`);
+            if (el) {
+                const count = [...selectedManuals].filter(k => k.startsWith(`${team.id}:`)).length;
+                el.textContent = count > 0 ? `${count}개 매뉴얼 선택됨` : '선택된 항목 없음';
+            }
+        });
+    }
+
+    async function startPollingSync(listToSync) {
+        return new Promise((resolve) => {
+            let pollsCount = 0;
+            const maxPolls = 60; // 3 minutes maximum
+            const intervalId = setInterval(async () => {
+                pollsCount++;
+                try {
+                    const response = await fetch(ADMIN_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'list_all_manuals' })
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        teamsData = data.teams || [];
+                        renderDynamicUI(data);
+
+                        // Check progress of listToSync
+                        let completedCount = 0;
+                        listToSync.forEach(item => {
+                            const team = teamsData.find(t => t.id === item.team);
+                            if (team) {
+                                const manual = team.manuals.find(m => m.id === item.id);
+                                if (manual && manual.status === '동기화 완료') {
+                                    const key = `${item.team}:${item.id}`;
+                                    if (syncingManuals.has(key)) {
+                                        syncingManuals.delete(key);
+                                        addLog(`[${item.title}] 동기화 완료!`, 'success');
+                                    }
+                                    completedCount++;
+                                }
+                            }
+                        });
+
+                        // Update loading message
+                        showGlobalLoading(`동기화를 진행 중입니다... (${completedCount}/${listToSync.length} 완료)`);
+
+                        // If all are completed, stop
+                        if (completedCount === listToSync.length) {
+                            clearInterval(intervalId);
+                            addLog('모든 선택된 매뉴얼 동기화가 성공적으로 완료되었습니다.', 'success');
+                            hideGlobalLoading();
+                            resolve(true);
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Polling error:", e);
+                }
+
+                if (pollsCount >= maxPolls) {
+                    clearInterval(intervalId);
+                    addLog('동기화 진행 상태 확인 시간 초과 (3분). 백업 프로세스가 백그라운드에서 계속 진행될 수 있습니다.', 'warn');
+                    listToSync.forEach(item => {
+                        syncingManuals.delete(`${item.team}:${item.id}`);
+                    });
+                    hideGlobalLoading();
+                    resolve(false);
+                }
+            }, 3000);
+        });
+    }
+
+    // 5. Trigger Sync & Delete Callbacks
+    btnSyncSelected.addEventListener('click', async () => {
+        if (selectedManuals.size === 0) return;
+        
+        const listToSync = [];
+        selectedManuals.forEach(key => {
+            const [tId, pId] = key.split(':');
+            const team = teamsData.find(t => t.id === tId);
+            if (team) {
+                const item = team.manuals.find(m => m.id === pId);
+                if (item) {
+                    listToSync.push({
+                        id: pId,
+                        title: item.title,
+                        team: tId
+                    });
+                    syncingManuals.add(key);
+                }
+            }
+        });
+
+        addLog(`선택한 ${listToSync.length}개 매뉴얼 동기화를 시작합니다...`, 'process');
+        showGlobalLoading(`동기화를 진행 중입니다... (0/${listToSync.length} 완료)`);
+        actionBar.classList.add('hidden');
+        
+        try {
+            btnSyncSelected.disabled = true;
+            const response = await fetch(ADMIN_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'sync_manuals',
+                    pages: listToSync
+                })
+            });
+
+            if (!response.ok) throw new Error(`HTTP Error: ${response.status} ${await response.text()}`);
+            const res = await response.json();
+            
+            addLog(`동기화 시작 완료 (백그라운드에서 진행): ${res.message || '성공'}`, 'info');
+            clearSelections();
+            await startPollingSync(listToSync);
+        } catch (e) {
+            addLog(`동기화 오류 발생: ${e.message}`, 'error');
+            listToSync.forEach(item => {
+                syncingManuals.delete(`${item.team}:${item.id}`);
+            });
+            hideGlobalLoading();
+        } finally {
+            btnSyncSelected.disabled = false;
+        }
+    });
+
+    btnDeleteSelected.addEventListener('click', async () => {
+        if (selectedManuals.size === 0) return;
+        
+        const listToDelete = [];
+        selectedManuals.forEach(key => {
+            const [tId, pId] = key.split(':');
+            listToDelete.push({ id: pId, team: tId });
+        });
+
+        if (!confirm(`선택한 ${listToDelete.length}개 매뉴얼의 벡터 데이터를 완전히 제거하시겠습니까?`)) {
+            return;
+        }
+
+        addLog(`선택한 ${listToDelete.length}개 매뉴얼 삭제 시작...`, 'process');
+        actionBar.classList.add('hidden');
+
+        try {
+            btnDeleteSelected.disabled = true;
+            const response = await fetch(ADMIN_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'delete_manuals',
+                    pages: listToDelete
+                })
+            });
+
+            if (!response.ok) throw new Error(`HTTP Error: ${response.status} ${await response.text()}`);
+            const res = await response.json();
+            addLog(`삭제 처리 완료: ${res.message || '성공'}`, 'success');
+            clearSelections();
+            await refreshAllState();
+        } catch (e) {
+            addLog(`삭제 오류 발생: ${e.message}`, 'error');
+        } finally {
+            btnDeleteSelected.disabled = false;
+        }
+    });
+
+    window.saveTeamConfig = async function(teamId) {
+        const btn = document.querySelector(`#tabContent-${teamId} .btn-save`);
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> 저장 중...';
+        btn.disabled = true;
+        
+        try {
+            // Get current global config, update it, and send back
+            const response1 = await fetch(ADMIN_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'get_config' })
+            });
+            if (!response1.ok) throw new Error("설정 불러오기 실패");
+            const res1 = await response1.json();
+            
+            const newConfig = res1.config || { teams: {} };
+            if (!newConfig.teams) newConfig.teams = {};
+            
+            newConfig.teams[teamId] = {
+                botName: document.getElementById(`cfg-botname-${teamId}`).value.trim(),
+                password: document.getElementById(`cfg-pw-${teamId}`).value.trim(),
+                welcomeMessage: document.getElementById(`cfg-welcome-${teamId}`).value.trim()
+            };
+
+            const response2 = await fetch(ADMIN_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'save_config',
+                    config: newConfig
+                })
+            });
+            if (!response2.ok) throw new Error("저장 실패");
+            
+            alert('설정이 저장되었습니다.');
+        } catch(e) {
+            alert('오류: ' + e.message);
+        } finally {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+        }
+    };
+
+    window.fullSyncTeam = async function(teamId) {
+        if (!confirm('경고: 해당 부서의 AI 학습 데이터 전체를 비우고 노션에서 다시 불러와 처음부터 다시 동기화하시겠습니까?\n(시간이 오래 걸릴 수 있으며 작업 도중 창을 닫지 마세요)')) return;
+
+        const team = teamsData.find(t => t.id === teamId);
+        if (!team || !team.manuals || team.manuals.length === 0) {
+            alert('동기화할 매뉴얼이 없습니다.');
+            return;
+        }
+
+        const listToSync = team.manuals.map(m => ({
+            id: m.id,
+            title: m.title,
+            team: teamId
+        }));
+
+        listToSync.forEach(item => {
+            syncingManuals.add(`${item.team}:${item.id}`);
+        });
+
+        addLog(`해당 부서 전체 데이터 강제 동기화 시작 (총 ${listToSync.length}개)...`, 'process');
+        showGlobalLoading(`전체 부서 데이터를 초기화하고 다시 동기화 중입니다... (0/${listToSync.length} 완료)`);
+
+        try {
+            const response = await fetch(ADMIN_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'full_sync_manuals',
+                    team: teamId,
+                    pages: listToSync
+                })
+            });
+
+            if (!response.ok) throw new Error(`HTTP Error: ${response.status} ${await response.text()}`);
+            const res = await response.json();
+            
+            addLog(`전체 강제 동기화 시작 완료 (백그라운드에서 진행): ${res.message || '성공'}`, 'info');
+            await startPollingSync(listToSync);
+        } catch (e) {
+            addLog(`동기화 오류 발생: ${e.message}`, 'error');
+            listToSync.forEach(item => {
+                syncingManuals.delete(`${item.team}:${item.id}`);
+            });
+            hideGlobalLoading();
+        }
+    };
+
+
+            
+
+    // Helper
+    function escapeHTML(str) {
+        if (!str) return '';
+        return str.replace(/[&<>'"]/g, 
+            tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag])
+        );
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startAdmin);
+} else {
+    startAdmin();
+}
+
+</script>
+</body>
+</html>

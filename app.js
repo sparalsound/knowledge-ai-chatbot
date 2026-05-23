@@ -17,9 +17,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const manualSearchInput = document.getElementById('manualSearch');
     const manualsList = document.getElementById('manualsList');
     const manualCount = document.getElementById('manualCount');
+    
+    // Dynamic Config Elements
+    const chatbotTitle = document.getElementById('chatbotTitle');
+    const chatbotWelcomeMsg = document.getElementById('chatbotWelcomeMsg');
+    
+    // Password Gate Elements
+    const teamGate = document.getElementById('teamGate');
+    const teamGateTitle = document.getElementById('teamGateTitle');
+    const teamGateDesc = document.getElementById('teamGateDesc');
+    const teamGateInput = document.getElementById('teamGateInput');
+    const teamGateError = document.getElementById('teamGateError');
+    const teamGateSubmitBtn = document.getElementById('teamGateSubmitBtn');
+
+    // Safe localStorage helper to prevent SecurityError when cookies/localStorage are disabled/blocked
+    const safeStorage = {
+        getItem(key) {
+            try { return localStorage.getItem(key); } catch (e) { return null; }
+        },
+        setItem(key, value) {
+            try { localStorage.setItem(key, value); } catch (e) {}
+        },
+        removeItem(key) {
+            try { localStorage.removeItem(key); } catch (e) {}
+        }
+    };
 
     // Webhook URL Setup
     const urlParams = new URLSearchParams(window.location.search);
+    const teamParam = urlParams.get('team');
     const apiParam = urlParams.get('api');
     if (apiParam) {
         let cleanApi = apiParam.trim();
@@ -27,39 +53,167 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!cleanApi.includes('/webhook/')) {
                 cleanApi = cleanApi.replace(/\/$/, '') + '/webhook/chat';
             }
-            localStorage.setItem('n8nWebhookUrl', cleanApi);
+            safeStorage.setItem('n8nWebhookUrl', cleanApi);
         }
     }
 
-    let WEBHOOK_URL = localStorage.getItem('n8nWebhookUrl') || "http://localhost:5678/webhook/chat";
-    webhookUrlInput.value = WEBHOOK_URL;
-
-    // Persistent session ID for conversation memory
-    let SESSION_ID = localStorage.getItem('chatSessionId');
-    if (!SESSION_ID) {
-        SESSION_ID = 'user-session-' + Date.now();
-        localStorage.setItem('chatSessionId', SESSION_ID);
+    let WEBHOOK_URL = safeStorage.getItem('n8nWebhookUrl');
+    
+    // Auto-detect and discard mismatched hostnames from localStorage
+    if (WEBHOOK_URL && !window.location.hostname.includes('localhost') && window.location.protocol !== 'file:') {
+        try {
+            const savedUrlObj = new URL(WEBHOOK_URL);
+            if (savedUrlObj.hostname !== window.location.hostname) {
+                console.warn('Discarding cached webhook URL from different domain:', savedUrlObj.hostname);
+                safeStorage.removeItem('n8nWebhookUrl');
+                WEBHOOK_URL = null;
+            }
+        } catch (e) {
+            safeStorage.removeItem('n8nWebhookUrl');
+            WEBHOOK_URL = null;
+        }
     }
 
+    // Default dynamically to current domain, fallback to trycloudflare if needed
+    if (!WEBHOOK_URL) {
+        if (window.location.origin && window.location.origin.startsWith('http') && window.location.protocol !== 'file:') {
+            WEBHOOK_URL = window.location.origin + "/webhook/chat";
+        } else {
+            WEBHOOK_URL = "https://chatbot.brit-team.com/webhook/chat";
+        }
+    }
+    
+    const ADMIN_API_URL = WEBHOOK_URL.replace('/webhook/chat', '/webhook/admin-api');
+    
+    if (webhookUrlInput) {
+        webhookUrlInput.value = WEBHOOK_URL;
+    }
+
+    // Persistent session ID for conversation memory
+    let SESSION_ID = safeStorage.getItem('chatSessionId');
+    if (!SESSION_ID) {
+        SESSION_ID = 'user-session-' + Date.now();
+        safeStorage.setItem('chatSessionId', SESSION_ID);
+    }
+
+    let teamConfig = null;
+
+    // Password Gate Logic
+    async function loadTeamConfig() {
+        if (!teamParam) {
+            showGateError('URL에 팀 파라미터가 없습니다. 올바른 주소로 접속해주세요.');
+            return;
+        }
+
+        try {
+            const res = await fetch(ADMIN_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'get_config' })
+            });
+            const data = await res.json();
+            const config = data.config || { teams: {} };
+            
+            teamConfig = config.teams[teamParam];
+            if (!teamConfig) {
+                showGateError('유효하지 않은 챗봇 주소입니다.');
+                return;
+            }
+
+            // Init Gate UI
+            teamGateTitle.textContent = teamConfig.botName || '챗봇 접속';
+            
+            if (teamConfig.password) {
+                teamGate.style.display = 'flex';
+                teamGateInput.focus();
+            } else {
+                unlockApp();
+            }
+        } catch (e) {
+            console.error('Config load error:', e);
+            showGateError('서버에서 설정을 불러올 수 없습니다.');
+        }
+    }
+
+    function showGateError(msg) {
+        teamGate.style.display = 'flex';
+        teamGateInput.style.display = 'none';
+        teamGateSubmitBtn.style.display = 'none';
+        teamGateError.style.display = 'block';
+        teamGateError.textContent = msg;
+    }
+
+    teamGateSubmitBtn.addEventListener('click', verifyTeamPassword);
+    teamGateInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') verifyTeamPassword();
+    });
+
+    function verifyTeamPassword() {
+        const pwd = teamGateInput.value.trim();
+        if (pwd === teamConfig.password) {
+            unlockApp();
+        } else {
+            teamGateError.style.display = 'block';
+            teamGateInput.value = '';
+            teamGateInput.focus();
+        }
+    }
+
+    function unlockApp() {
+        teamGate.style.display = 'none';
+        
+        // Set dynamic texts
+        if (chatbotTitle && teamConfig.botName) {
+            chatbotTitle.textContent = teamConfig.botName;
+            document.title = teamConfig.botName;
+        }
+        if (chatbotWelcomeMsg && teamConfig.welcomeMessage) {
+            chatbotWelcomeMsg.innerHTML = escapeHTML(teamConfig.welcomeMessage).replace(/\\n/g, '<br>');
+        }
+        
+        // Initial manual list fetch
+        fetchManuals();
+    }
+
+    loadTeamConfig();
+
     // Theme Management
-    const savedTheme = localStorage.getItem('theme') || 'light';
+    const savedTheme = safeStorage.getItem('theme') || 'light';
     root.setAttribute('data-theme', savedTheme);
 
     themeToggle.addEventListener('click', () => {
         const currentTheme = root.getAttribute('data-theme');
         const newTheme = currentTheme === 'light' ? 'dark' : 'light';
         root.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
+        safeStorage.setItem('theme', newTheme);
     });
 
     // Settings Panel Toggle
-    settingsToggle.addEventListener('click', () => {
-        settingsPanel.classList.toggle('open');
-    });
+    if (settingsToggle) {
+        settingsToggle.addEventListener('click', () => {
+            settingsPanel.classList.toggle('open');
+        });
+    }
+
+    // Close settings panel when close button or backdrop is clicked
+    const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+    if (closeSettingsBtn) {
+        closeSettingsBtn.addEventListener('click', () => {
+            settingsPanel.classList.remove('open');
+        });
+    }
+
+    if (settingsPanel) {
+        settingsPanel.addEventListener('click', (e) => {
+            if (e.target === settingsPanel) {
+                settingsPanel.classList.remove('open');
+            }
+        });
+    }
 
     saveWebhookBtn.addEventListener('click', () => {
         WEBHOOK_URL = webhookUrlInput.value.trim();
-        localStorage.setItem('n8nWebhookUrl', WEBHOOK_URL);
+        safeStorage.setItem('n8nWebhookUrl', WEBHOOK_URL);
         settingsPanel.classList.remove('open');
         
         // Show confirmation
@@ -68,6 +222,25 @@ document.addEventListener('DOMContentLoaded', () => {
         // Refresh manuals list after webhook update
         fetchManuals();
     });
+    
+    const resetWebhookBtn = document.getElementById('resetWebhookBtn');
+    if (resetWebhookBtn) {
+        resetWebhookBtn.addEventListener('click', () => {
+            safeStorage.removeItem('n8nWebhookUrl');
+            
+            if (window.location.origin && window.location.origin.startsWith('http')) {
+                WEBHOOK_URL = window.location.origin + "/webhook/chat";
+            } else {
+                WEBHOOK_URL = "https://chatbot.brit-team.com/webhook/chat";
+            }
+            
+            webhookUrlInput.value = WEBHOOK_URL;
+            settingsPanel.classList.remove('open');
+            
+            addBotMessage('Webhook URL이 기본값으로 초기화되었습니다.');
+            fetchManuals();
+        });
+    }
 
     // Mobile Sidebar Toggling
     if (sidebarToggle && sidebarLeft) {
@@ -106,7 +279,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    action: 'list_manuals'
+                    action: 'list_manuals',
+                    team: teamParam
                 })
             });
 
@@ -195,9 +369,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (refreshManualsBtn) {
         refreshManualsBtn.addEventListener('click', fetchManuals);
     }
-
-    // Initial manual list fetch
-    fetchManuals();
 
     // Auto-resize textarea
     userInput.addEventListener('input', function() {
@@ -323,7 +494,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify({
                     sessionId: SESSION_ID,
-                    chatInput: text
+                    chatInput: text,
+                    team: teamParam
                 })
             });
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>아 그저그런 챗봇이랑께</title>
+    <title>BR Team 챗봇</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
@@ -18,12 +18,17 @@
                 </button>
                 <div class="logo">
                     <div class="logo-icon"><i class="ri-robot-2-fill"></i></div>
-                    <h1>그저그런 챗봇! by CWPARK</h1>
+                    <h1 id="chatbotTitle">BR Team 챗봇</h1>
                 </div>
             </div>
-            <div class="theme-toggle" id="themeToggle">
-                <i class="ri-moon-fill dark-icon"></i>
-                <i class="ri-sun-fill light-icon"></i>
+            <div class="header-right" style="display: flex; align-items: center; gap: 12px;">
+                <div class="theme-toggle" id="themeToggle" style="margin: 0;">
+                    <i class="ri-moon-fill dark-icon"></i>
+                    <i class="ri-sun-fill light-icon"></i>
+                </div>
+                <button class="action-icon-btn" id="settingsToggle" title="설정" style="border-radius: 50%;">
+                    <i class="ri-settings-3-line"></i>
+                </button>
             </div>
         </header>
 
@@ -61,10 +66,10 @@
             <main class="chat-container">
                 <div class="chat-messages" id="chatMessages">
                     <!-- Welcome Message -->
-                    <div class="message bot">
+                    <div class="message bot" id="welcomeMessageBlock">
                         <div class="avatar"><i class="ri-robot-2-line"></i></div>
                         <div class="message-content">
-                            <p>안녕하세요!  당신이 업로드한 매뉴얼을 기반으로 답변하는 똑똑한 AI 챗봇입니다.</p>
+                            <p id="chatbotWelcomeMsg">안녕하세요! 당신이 업로드한 매뉴얼을 기반으로 답변하는 똑똑한 AI 챗봇입니다.</p>
                             <span class="time">Just now</span>
                         </div>
                     </div>
@@ -85,18 +90,40 @@
     </div>
 
     <!-- Webhook Settings Modal -->
-    <div class="settings-panel">
-        <button class="settings-toggle" id="settingsToggle" title="설정">
-            <i class="ri-settings-3-line"></i>
-        </button>
+    <div class="settings-panel" id="settingsPanel">
         <div class="settings-content" id="settingsContent">
-            <h3>Webhook 설정</h3>
-            <p>n8n Webhook URL을 입력해주세요.</p>
-            <input type="text" id="webhookUrl" placeholder="http://localhost:5678/webhook/chat" value="http://localhost:5678/webhook/chat">
-            <button id="saveWebhookBtn">저장</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 600;">Webhook 설정</h3>
+                <button id="closeSettingsBtn" style="background: none; border: none; color: var(--text-primary); cursor: pointer; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%;">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0 0 16px 0;">n8n Webhook URL을 입력해주세요.</p>
+            <input type="text" id="webhookUrl" placeholder="https://chatbot.brit-team.com/webhook/chat" value="https://chatbot.brit-team.com/webhook/chat" style="width: 100%; padding: 10px 12px; border: 1px solid var(--glass-border); background: var(--bg-color); color: var(--text-primary); border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem; outline: none; box-sizing: border-box;">
+            <div style="display: flex; gap: 8px;">
+                <button id="saveWebhookBtn" style="flex: 1; padding: 10px; background: var(--primary-color); border: none; color: white; border-radius: 8px; font-weight: 600; cursor: pointer;">저장</button>
+                <button id="resetWebhookBtn" style="flex: 1; padding: 10px; background: var(--bg-color); border: 1px solid var(--glass-border); color: var(--text-primary); border-radius: 8px; font-weight: 600; cursor: pointer;">초기화</button>
+            </div>
         </div>
     </div>
 
+    <!-- Password Gate (Added for team security) -->
+    <div id="teamGate" class="settings-panel" style="display: flex; z-index: 10000; flex-direction: column; opacity: 1; pointer-events: auto;">
+        <div class="settings-content" style="text-align: center; max-width: 350px;">
+            <div class="logo-icon" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 10px;">
+                <i class="ri-lock-password-line"></i>
+            </div>
+            <h3 style="margin-bottom: 10px; font-weight: 600;" id="teamGateTitle">챗봇 접속</h3>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 20px;" id="teamGateDesc">팀챗 고유비밀번호를 입력해주세요</p>
+            <input type="password" id="teamGateInput" placeholder="팀 비밀번호를 입력하세요" style="width: 100%; padding: 12px; border: 1px solid var(--glass-border); background: var(--bg-color); color: var(--text-primary); border-radius: 8px; margin-bottom: 15px; text-align: center; letter-spacing: 2px;">
+            <p id="teamGateError" style="color: #ff4d4f; font-size: 0.85rem; margin-top: -10px; margin-bottom: 15px; display: none;">비밀번호가 일치하지 않습니다.</p>
+            <button id="teamGateSubmitBtn" style="width: 100%; padding: 12px; background: var(--primary-color); border: none; color: white; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                입장하기
+            </button>
+        </div>
+    </div>
+
+    <!-- Script loaded at the end -->
     <script src="app.js"></script>
 </body>
 </html>

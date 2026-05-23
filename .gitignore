@@ -1,3 +1,4 @@
+scratch/
 # scratch 디버그 파일들 (GitHub에 올릴 필요 없음)
 scratch_*.js
 scratch_*.ps1
@@ -24,4 +25,5 @@ pages_payload.json
 qdrant_point_payload.txt
 exec_detail_utf8.json
 node_modules/
-
+# 백업 JSON 파일들 제외
+*backup*.json

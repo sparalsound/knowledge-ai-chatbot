@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BR Team 챗봇</title>
+    <style>
+:root {
+    /* Light Theme */
+    --bg-color: #f3f4f6;
+    --chat-bg: #ffffff;
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --primary-color: #4f46e5;
+    --primary-hover: #4338ca;
+    --bot-msg-bg: #f8fafc;
+    --bot-msg-border: #e2e8f0;
+    --user-msg-bg: #4f46e5;
+    --user-msg-text: #ffffff;
+    --glass-bg: rgba(255, 255, 255, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.35);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.06);
+    
+    /* Left Sidebar Extra Variables */
+    --sidebar-bg: rgba(249, 250, 251, 0.65);
+    --sidebar-border: rgba(229, 231, 235, 0.8);
+    --badge-bg: #e0e7ff;
+    --badge-text: #4f46e5;
+    --card-bg: #ffffff;
+    --card-hover-bg: #f5f3ff;
+    --card-border: #e9e3ff;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] {
+    /* Dark Theme */
+    --bg-color: #0b0f19;
+    --chat-bg: #151d30;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --primary-color: #6366f1;
+    --primary-hover: #818cf8;
+    --bot-msg-bg: #2dd4bf0d;
+    --bot-msg-border: #1e293b;
+    --user-msg-bg: #6366f1;
+    --user-msg-text: #ffffff;
+    --glass-bg: rgba(21, 29, 48, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.05);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+    
+    /* Left Sidebar Extra Variables */
+    --sidebar-bg: rgba(11, 15, 25, 0.6);
+    --sidebar-border: rgba(30, 41, 59, 0.8);
+    --badge-bg: #312e81;
+    --badge-text: #a5b4fc;
+    --card-bg: #1e293b;
+    --card-hover-bg: #2e106526;
+    --card-border: #4c1d953d;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s ease;
+    overflow: hidden;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 1200px;
+    height: 95vh;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--glass-border);
+    background: rgba(var(--chat-bg), 0.5);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--primary-color), #a855f7);
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+}
+
+.logo h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.theme-toggle {
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--chat-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+    background: var(--bot-msg-border);
+}
+
+[data-theme="dark"] .dark-icon { display: none; }
+[data-theme="light"] .light-icon { display: none; }
+[data-theme="dark"] .light-icon { display: block; }
+
+/* Chat Container */
+.chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 32px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    scroll-behavior: smooth;
+}
+
+.chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+.chat-messages::-webkit-scrollbar-thumb {
+    background: var(--glass-border);
+    border-radius: 10px;
+}
+
+/* Messages */
+.message {
+    display: flex;
+    gap: 16px;
+    max-width: 85%;
+    animation: fadeIn 0.4s ease forwards;
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.message.user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    font-size: 1.2rem;
+}
+
+.bot .avatar {
+    background: var(--chat-bg);
+    border: 1px solid var(--bot-msg-border);
+    color: var(--primary-color);
+}
+
+.user .avatar {
+    display: none;
+}
+
+.message-content {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.message.user .message-content {
+    align-items: flex-end;
+}
+
+.message p {
+    padding: 14px 20px;
+    border-radius: 20px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    word-break: break-word;
+}
+
+.bot p {
+    background: var(--bot-msg-bg);
+    border: 1px solid var(--bot-msg-border);
+    border-top-left-radius: 4px;
+}
+
+.user p {
+    background: var(--user-msg-bg);
+    color: var(--user-msg-text);
+    border-top-right-radius: 4px;
+}
+
+.time {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin: 0 4px;
+}
+
+/* Typing Indicator */
+.typing-indicator {
+    display: flex;
+    gap: 6px;
+    padding: 18px 24px !important;
+    align-items: center;
+}
+
+.dot {
+    width: 6px;
+    height: 6px;
+    background: var(--text-secondary);
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.dot:nth-child(1) { animation-delay: -0.32s; }
+.dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+}
+
+/* Input Area */
+.input-area {
+    padding: 24px 32px;
+    background: linear-gradient(to top, var(--chat-bg) 70%, transparent);
+    position: relative;
+    z-index: 10;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    background: var(--chat-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    transition: all 0.3s ease;
+}
+
+.input-wrapper:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 20px rgba(79, 70, 229, 0.15);
+}
+
+textarea {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 12px 16px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 1rem;
+    resize: none;
+    max-height: 150px;
+    outline: none;
+    line-height: 1.5;
+}
+
+textarea::placeholder {
+    color: var(--text-secondary);
+}
+
+.send-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    margin: 4px;
+}
+
+.send-btn:hover:not(:disabled) {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.send-btn:disabled {
+    background: var(--bot-msg-border);
+    color: var(--text-secondary);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.footer-text {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 16px;
+}
+
+/* Settings Panel Modal Overlay */
+.settings-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.settings-panel.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.settings-content {
+    background: var(--chat-bg);
+    border: 1px solid var(--glass-border);
+    padding: 24px;
+    border-radius: 16px;
+    width: 340px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+}
+
+.settings-panel.open .settings-content {
+    transform: scale(1);
+}
+
+.settings-content h3 {
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+}
+
+.settings-content p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+
+.settings-content input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--glass-border);
+    background: var(--bg-color);
+    color: var(--text-primary);
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+    outline: none;
+}
+
+.settings-content input:focus {
+    border-color: var(--primary-color);
+}
+
+.settings-content button {
+    width: 100%;
+    padding: 10px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.settings-content button:hover {
+    background: var(--primary-hover);
+}
+
+/* App Body Wrapper */
+.app-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.sidebar-toggle-btn {
+    display: none !important;
+}
+
+/* Left Sidebar */
+.sidebar-left {
+    width: 300px;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--sidebar-border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 20px 16px 20px;
+}
+
+.sidebar-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.sidebar-title i {
+    font-size: 1.25rem;
+    color: var(--primary-color);
+}
+
+.sidebar-title h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+}
+
+.manual-badge {
+    background: var(--badge-bg);
+    color: var(--badge-text);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-left: 4px;
+}
+
+/* Action Icon Button */
+.action-icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--chat-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.action-icon-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: rotate(45deg);
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+}
+
+.sidebar-search {
+    padding: 0 20px 16px 20px;
+}
+
+.search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--chat-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 8px 12px;
+    transition: all 0.2s ease;
+}
+
+.search-box:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+}
+
+.search-box i {
+    color: var(--text-secondary);
+    margin-right: 8px;
+    font-size: 0.95rem;
+}
+
+.search-box input {
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    width: 100%;
+    outline: none;
+}
+
+.search-box input::placeholder {
+    color: var(--text-secondary);
+}
+
+/* Manual List Wrapper */
+.manual-list-wrapper {
+    flex: 1;
+    padding: 0 20px 24px 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.manual-list-wrapper::-webkit-scrollbar {
+    width: 4px;
+}
+
+.manual-list-wrapper::-webkit-scrollbar-thumb {
+    background: var(--glass-border);
+    border-radius: 10px;
+}
+
+/* Loading & Empty State */
+.manual-loading, .manual-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    gap: 12px;
+}
+
+.pulse-loader {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(0.8); opacity: 0.5; }
+}
+
+/* Manual Cards */
+.manual-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: var(--card-shadow);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: slideIn 0.3s ease forwards;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.manual-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary-color);
+    background: var(--card-hover-bg);
+    box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.1);
+}
+
+.manual-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #f43f5e, #fb7185);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}
+
+.manual-icon.doc {
+    background: linear-gradient(135deg, #3b82f6, #60a5fa);
+}
+
+.manual-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+
+.manual-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.manual-meta {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+}
+
+.status-indicator {
+    width: 6px;
+    height: 6px;
+    background: #10b981;
+    border-radius: 50%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .app-container {
+        height: 100vh;
+        border-radius: 0;
+        border: none;
+    }
+    
+    .message {
+        max-width: 95%;
+    }
+
+    .sidebar-toggle-btn {
+        display: flex !important;
+    }
+
+    .sidebar-left {
+        position: absolute;
+        left: -320px;
+        top: 80px; /* height of header */
+        height: calc(100% - 80px);
+        z-index: 90;
+        box-shadow: 10px 0 30px rgba(0,0,0,0.15);
+        background: var(--chat-bg);
+        width: 280px;
+    }
+
+    .sidebar-left.open {
+        left: 0;
+    }
+}
+
+</style>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar / Header -->
+        <header class="header">
+            <div class="header-left">
+                <button id="sidebarToggle" class="action-icon-btn sidebar-toggle-btn" title="매뉴얼 목록">
+                    <i class="ri-book-3-line"></i>
+                </button>
+                <div class="logo">
+                    <div class="logo-icon"><i class="ri-robot-2-fill"></i></div>
+                    <h1 id="chatbotTitle">BR Team 챗봇</h1>
+                </div>
+            </div>
+            <div class="header-right" style="display: flex; align-items: center; gap: 12px;">
+                <div class="theme-toggle" id="themeToggle" style="margin: 0;">
+                    <i class="ri-moon-fill dark-icon"></i>
+                    <i class="ri-sun-fill light-icon"></i>
+                </div>
+                <button class="action-icon-btn" id="settingsToggle" title="설정" style="border-radius: 50%;">
+                    <i class="ri-settings-3-line"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="app-body">
+            <!-- Left Sidebar for Reference Manuals -->
+            <aside class="sidebar-left" id="sidebarLeft">
+                <div class="sidebar-header">
+                    <div class="sidebar-title">
+                        <i class="ri-book-3-line"></i>
+                        <h2>학습된 매뉴얼</h2>
+                        <span class="manual-badge" id="manualCount">0</span>
+                    </div>
+                    <button id="refreshManualsBtn" class="action-icon-btn" title="매뉴얼 목록 동기화">
+                        <i class="ri-refresh-line"></i>
+                    </button>
+                </div>
+                
+                <div class="sidebar-search">
+                    <div class="search-box">
+                        <i class="ri-search-line"></i>
+                        <input type="text" id="manualSearch" placeholder="매뉴얼 검색...">
+                    </div>
+                </div>
+
+                <div class="manual-list-wrapper" id="manualsList">
+                    <!-- Dynamic manual items will be rendered here -->
+                    <div class="manual-loading">
+                        <div class="pulse-loader"></div>
+                        <span>학습된 매뉴얼을 불러오는 중...</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Chat Area -->
+            <main class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Welcome Message -->
+                    <div class="message bot" id="welcomeMessageBlock">
+                        <div class="avatar"><i class="ri-robot-2-line"></i></div>
+                        <div class="message-content">
+                            <p id="chatbotWelcomeMsg">안녕하세요! 당신이 업로드한 매뉴얼을 기반으로 답변하는 똑똑한 AI 챗봇입니다.</p>
+                            <span class="time">Just now</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Area -->
+                <div class="input-area">
+                    <div class="input-wrapper">
+                        <textarea id="userInput" placeholder="무엇이든 물어보세요... 관련 매뉴얼을 찾아 답변해 드립니다." rows="1"></textarea>
+                        <button id="sendBtn" class="send-btn" disabled>
+                            <i class="ri-send-plane-fill"></i>
+                        </button>
+                    </div>
+                    <div class="footer-text">AI는 실수할 수 있으므로 중요한 정보는 원본 매뉴얼을 확인해주세요.</div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Webhook Settings Modal -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-content" id="settingsContent">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 600;">Webhook 설정</h3>
+                <button id="closeSettingsBtn" style="background: none; border: none; color: var(--text-primary); cursor: pointer; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%;">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0 0 16px 0;">n8n Webhook URL을 입력해주세요.</p>
+            <input type="text" id="webhookUrl" placeholder="https://chatbot.brit-team.com/webhook/chat" value="https://chatbot.brit-team.com/webhook/chat" style="width: 100%; padding: 10px 12px; border: 1px solid var(--glass-border); background: var(--bg-color); color: var(--text-primary); border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem; outline: none; box-sizing: border-box;">
+            <div style="display: flex; gap: 8px;">
+                <button id="saveWebhookBtn" style="flex: 1; padding: 10px; background: var(--primary-color); border: none; color: white; border-radius: 8px; font-weight: 600; cursor: pointer;">저장</button>
+                <button id="resetWebhookBtn" style="flex: 1; padding: 10px; background: var(--bg-color); border: 1px solid var(--glass-border); color: var(--text-primary); border-radius: 8px; font-weight: 600; cursor: pointer;">초기화</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Gate (Added for team security) -->
+    <div id="teamGate" class="settings-panel" style="display: flex; z-index: 10000; flex-direction: column; opacity: 1; pointer-events: auto;">
+        <div class="settings-content" style="text-align: center; max-width: 350px;">
+            <div class="logo-icon" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 10px;">
+                <i class="ri-lock-password-line"></i>
+            </div>
+            <h3 style="margin-bottom: 10px; font-weight: 600;" id="teamGateTitle">챗봇 접속</h3>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 20px;" id="teamGateDesc">팀챗 고유비밀번호를 입력해주세요</p>
+            <input type="password" id="teamGateInput" placeholder="팀 비밀번호를 입력하세요" style="width: 100%; padding: 12px; border: 1px solid var(--glass-border); background: var(--bg-color); color: var(--text-primary); border-radius: 8px; margin-bottom: 15px; text-align: center; letter-spacing: 2px;">
+            <p id="teamGateError" style="color: #ff4d4f; font-size: 0.85rem; margin-top: -10px; margin-bottom: 15px; display: none;">비밀번호가 일치하지 않습니다.</p>
+            <button id="teamGateSubmitBtn" style="width: 100%; padding: 12px; background: var(--primary-color); border: none; color: white; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                입장하기
+            </button>
+        </div>
+    </div>
+
+    <!-- Script loaded at the end -->
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const themeToggle = document.getElementById('themeToggle');
+    const root = document.documentElement;
+    const chatMessages = document.getElementById('chatMessages');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    
+    const settingsToggle = document.getElementById('settingsToggle');
+    const settingsPanel = document.querySelector('.settings-panel');
+    const webhookUrlInput = document.getElementById('webhookUrl');
+    const saveWebhookBtn = document.getElementById('saveWebhookBtn');
+
+    // Sidebar Manuals List Elements
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebarLeft = document.getElementById('sidebarLeft');
+    const refreshManualsBtn = document.getElementById('refreshManualsBtn');
+    const manualSearchInput = document.getElementById('manualSearch');
+    const manualsList = document.getElementById('manualsList');
+    const manualCount = document.getElementById('manualCount');
+    
+    // Dynamic Config Elements
+    const chatbotTitle = document.getElementById('chatbotTitle');
+    const chatbotWelcomeMsg = document.getElementById('chatbotWelcomeMsg');
+    
+    // Password Gate Elements
+    const teamGate = document.getElementById('teamGate');
+    const teamGateTitle = document.getElementById('teamGateTitle');
+    const teamGateDesc = document.getElementById('teamGateDesc');
+    const teamGateInput = document.getElementById('teamGateInput');
+    const teamGateError = document.getElementById('teamGateError');
+    const teamGateSubmitBtn = document.getElementById('teamGateSubmitBtn');
+
+    // Safe localStorage helper to prevent SecurityError when cookies/localStorage are disabled/blocked
+    const safeStorage = {
+        getItem(key) {
+            try { return localStorage.getItem(key); } catch (e) { return null; }
+        },
+        setItem(key, value) {
+            try { localStorage.setItem(key, value); } catch (e) {}
+        },
+        removeItem(key) {
+            try { localStorage.removeItem(key); } catch (e) {}
+        }
+    };
+
+    // Webhook URL Setup
+    const urlParams = new URLSearchParams(window.location.search);
+    const teamParam = urlParams.get('team');
+    const apiParam = urlParams.get('api');
+    if (apiParam) {
+        let cleanApi = apiParam.trim();
+        if (cleanApi.startsWith('http')) {
+            if (!cleanApi.includes('/webhook/')) {
+                cleanApi = cleanApi.replace(/\/$/, '') + '/webhook/chat';
+            }
+            safeStorage.setItem('n8nWebhookUrl', cleanApi);
+        }
+    }
+
+    let WEBHOOK_URL = safeStorage.getItem('n8nWebhookUrl');
+    
+    // Auto-detect and discard mismatched hostnames from localStorage
+    if (WEBHOOK_URL && !window.location.hostname.includes('localhost') && window.location.protocol !== 'file:') {
+        try {
+            const savedUrlObj = new URL(WEBHOOK_URL);
+            if (savedUrlObj.hostname !== window.location.hostname) {
+                console.warn('Discarding cached webhook URL from different domain:', savedUrlObj.hostname);
+                safeStorage.removeItem('n8nWebhookUrl');
+                WEBHOOK_URL = null;
+            }
+        } catch (e) {
+            safeStorage.removeItem('n8nWebhookUrl');
+            WEBHOOK_URL = null;
+        }
+    }
+
+    // Default dynamically to current domain, fallback to trycloudflare if needed
+    if (!WEBHOOK_URL) {
+        if (window.location.origin && window.location.origin.startsWith('http') && window.location.protocol !== 'file:') {
+            WEBHOOK_URL = window.location.origin + "/webhook/chat";
+        } else {
+            WEBHOOK_URL = "https://chatbot.brit-team.com/webhook/chat";
+        }
+    }
+    
+    const ADMIN_API_URL = WEBHOOK_URL.replace('/webhook/chat', '/webhook/admin-api');
+    
+    if (webhookUrlInput) {
+        webhookUrlInput.value = WEBHOOK_URL;
+    }
+
+    // Persistent session ID for conversation memory
+    let SESSION_ID = safeStorage.getItem('chatSessionId');
+    if (!SESSION_ID) {
+        SESSION_ID = 'user-session-' + Date.now();
+        safeStorage.setItem('chatSessionId', SESSION_ID);
+    }
+
+    let teamConfig = null;
+
+    // Password Gate Logic
+    async function loadTeamConfig() {
+        if (!teamParam) {
+            showGateError('URL에 팀 파라미터가 없습니다. 올바른 주소로 접속해주세요.');
+            return;
+        }
+
+        try {
+            const res = await fetch(ADMIN_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'get_config' })
+            });
+            const data = await res.json();
+            const config = data.config || { teams: {} };
+            
+            teamConfig = config.teams[teamParam];
+            if (!teamConfig) {
+                showGateError('유효하지 않은 챗봇 주소입니다.');
+                return;
+            }
+
+            // Init Gate UI
+            teamGateTitle.textContent = teamConfig.botName || '챗봇 접속';
+            
+            if (teamConfig.password) {
+                teamGate.style.display = 'flex';
+                teamGateInput.focus();
+            } else {
+                unlockApp();
+            }
+        } catch (e) {
+            console.error('Config load error:', e);
+            showGateError('서버에서 설정을 불러올 수 없습니다.');
+        }
+    }
+
+    function showGateError(msg) {
+        teamGate.style.display = 'flex';
+        teamGateInput.style.display = 'none';
+        teamGateSubmitBtn.style.display = 'none';
+        teamGateError.style.display = 'block';
+        teamGateError.textContent = msg;
+    }
+
+    teamGateSubmitBtn.addEventListener('click', verifyTeamPassword);
+    teamGateInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') verifyTeamPassword();
+    });
+
+    function verifyTeamPassword() {
+        const pwd = teamGateInput.value.trim();
+        if (pwd === teamConfig.password) {
+            unlockApp();
+        } else {
+            teamGateError.style.display = 'block';
+            teamGateInput.value = '';
+            teamGateInput.focus();
+        }
+    }
+
+    function unlockApp() {
+        teamGate.style.display = 'none';
+        
+        // Set dynamic texts
+        if (chatbotTitle && teamConfig.botName) {
+            chatbotTitle.textContent = teamConfig.botName;
+            document.title = teamConfig.botName;
+        }
+        if (chatbotWelcomeMsg && teamConfig.welcomeMessage) {
+            chatbotWelcomeMsg.innerHTML = escapeHTML(teamConfig.welcomeMessage).replace(/\\n/g, '<br>');
+        }
+        
+        // Initial manual list fetch
+        fetchManuals();
+    }
+
+    loadTeamConfig();
+
+    // Theme Management
+    const savedTheme = safeStorage.getItem('theme') || 'light';
+    root.setAttribute('data-theme', savedTheme);
+
+    themeToggle.addEventListener('click', () => {
+        const currentTheme = root.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        root.setAttribute('data-theme', newTheme);
+        safeStorage.setItem('theme', newTheme);
+    });
+
+    // Settings Panel Toggle
+    if (settingsToggle) {
+        settingsToggle.addEventListener('click', () => {
+            settingsPanel.classList.toggle('open');
+        });
+    }
+
+    // Close settings panel when close button or backdrop is clicked
+    const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+    if (closeSettingsBtn) {
+        closeSettingsBtn.addEventListener('click', () => {
+            settingsPanel.classList.remove('open');
+        });
+    }
+
+    if (settingsPanel) {
+        settingsPanel.addEventListener('click', (e) => {
+            if (e.target === settingsPanel) {
+                settingsPanel.classList.remove('open');
+            }
+        });
+    }
+
+    saveWebhookBtn.addEventListener('click', () => {
+        WEBHOOK_URL = webhookUrlInput.value.trim();
+        safeStorage.setItem('n8nWebhookUrl', WEBHOOK_URL);
+        settingsPanel.classList.remove('open');
+        
+        // Show confirmation
+        addBotMessage('Webhook URL이 저장되었습니다. 이제 질문을 시작할 수 있습니다.');
+        
+        // Refresh manuals list after webhook update
+        fetchManuals();
+    });
+    
+    const resetWebhookBtn = document.getElementById('resetWebhookBtn');
+    if (resetWebhookBtn) {
+        resetWebhookBtn.addEventListener('click', () => {
+            safeStorage.removeItem('n8nWebhookUrl');
+            
+            if (window.location.origin && window.location.origin.startsWith('http')) {
+                WEBHOOK_URL = window.location.origin + "/webhook/chat";
+            } else {
+                WEBHOOK_URL = "https://chatbot.brit-team.com/webhook/chat";
+            }
+            
+            webhookUrlInput.value = WEBHOOK_URL;
+            settingsPanel.classList.remove('open');
+            
+            addBotMessage('Webhook URL이 기본값으로 초기화되었습니다.');
+            fetchManuals();
+        });
+    }
+
+    // Mobile Sidebar Toggling
+    if (sidebarToggle && sidebarLeft) {
+        sidebarToggle.addEventListener('click', () => {
+            sidebarLeft.classList.toggle('open');
+        });
+
+        // Close sidebar when clicking outside on mobile devices
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768) {
+                if (!sidebarLeft.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                    sidebarLeft.classList.remove('open');
+                }
+            }
+        });
+    }
+
+    // Reference Manuals State & Logic
+    let allManuals = [];
+
+    async function fetchManuals() {
+        if (!manualsList) return;
+
+        // Render sleek loading indicator
+        manualsList.innerHTML = `
+            <div class="manual-loading">
+                <div class="pulse-loader"></div>
+                <span>학습된 매뉴얼을 불러오는 중...</span>
+            </div>
+        `;
+
+        try {
+            const response = await fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'list_manuals',
+                    team: teamParam
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            allManuals = data.manuals || [];
+            renderManuals(allManuals);
+
+        } catch (error) {
+            console.error('Error fetching manuals:', error);
+            manualsList.innerHTML = `
+                <div class="manual-empty">
+                    <i class="ri-error-warning-line" style="font-size: 1.5rem; color: var(--text-secondary);"></i>
+                    <p>매뉴얼 목록 로드 실패</p>
+                    <span style="font-size: 0.75rem; opacity: 0.6;">n8n 서버 상태를 확인해주세요.</span>
+                </div>
+            `;
+            if (manualCount) manualCount.textContent = '0';
+        }
+    }
+
+    function renderManuals(manuals) {
+        if (manualCount) manualCount.textContent = manuals.length;
+
+        if (manuals.length === 0) {
+            manualsList.innerHTML = `
+                <div class="manual-empty">
+                    <i class="ri-inbox-line" style="font-size: 1.5rem; color: var(--text-secondary);"></i>
+                    <p>학습된 매뉴얼이 없습니다.</p>
+                </div>
+            `;
+            return;
+        }
+
+        manualsList.innerHTML = '';
+        manuals.forEach(manual => {
+            const card = document.createElement('div');
+            card.className = 'manual-card';
+
+            const isPdf = manual.file.toLowerCase().endsWith('.pdf');
+            const iconClass = isPdf ? 'ri-file-pdf-line' : 'ri-file-text-line';
+            const iconBgClass = isPdf ? '' : 'doc';
+
+            card.innerHTML = `
+                <div class="manual-icon ${iconBgClass}">
+                    <i class="${iconClass}"></i>
+                </div>
+                <div class="manual-info">
+                    <span class="manual-name" title="${escapeHTML(manual.name)}">${escapeHTML(manual.name)}</span>
+                    <div class="manual-meta">
+                        <span class="status-indicator" title="학습 완료"></span>
+                        <span style="font-size: 0.7rem; opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;" title="${escapeHTML(manual.file)}">${escapeHTML(manual.file)}</span>
+                    </div>
+                </div>
+            `;
+
+            // On manual card click, pre-fill user textarea with custom question prefix
+            card.addEventListener('click', () => {
+                userInput.value = `[${manual.name}] 관련해서 질문: `;
+                userInput.focus();
+                userInput.style.height = 'auto';
+                userInput.style.height = (userInput.scrollHeight) + 'px';
+                sendBtn.removeAttribute('disabled');
+            });
+
+            manualsList.appendChild(card);
+        });
+    }
+
+    // Local Search Filtering
+    if (manualSearchInput) {
+        manualSearchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const filtered = allManuals.filter(manual =>
+                manual.name.toLowerCase().includes(query) ||
+                manual.file.toLowerCase().includes(query)
+            );
+            renderManuals(filtered);
+        });
+    }
+
+    // Manual Refresh click listener
+    if (refreshManualsBtn) {
+        refreshManualsBtn.addEventListener('click', fetchManuals);
+    }
+
+    // Auto-resize textarea
+    userInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+        
+        if (this.value.trim() !== '') {
+            sendBtn.removeAttribute('disabled');
+        } else {
+            sendBtn.setAttribute('disabled', 'true');
+        }
+    });
+
+    // Handle Enter key (Shift+Enter for new line)
+    userInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (userInput.value.trim() !== '') {
+                sendMessage();
+            }
+        }
+    });
+
+    sendBtn.addEventListener('click', sendMessage);
+
+    function formatTime() {
+        const now = new Date();
+        return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function addUserMessage(text) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message user';
+        
+        msgDiv.innerHTML = `
+            <div class="message-content">
+                <p>${escapeHTML(text)}</p>
+                <span class="time">${formatTime()}</span>
+            </div>
+        `;
+        
+        chatMessages.appendChild(msgDiv);
+        scrollToBottom();
+    }
+
+    function addBotMessage(text) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message bot';
+        
+        // Very basic markdown parser for bold and line breaks
+        let formattedText = escapeHTML(text)
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n/g, '<br>');
+
+        msgDiv.innerHTML = `
+            <div class="avatar"><i class="ri-robot-2-line"></i></div>
+            <div class="message-content">
+                <p>${formattedText}</p>
+                <span class="time">${formatTime()}</span>
+            </div>
+        `;
+        
+        chatMessages.appendChild(msgDiv);
+        scrollToBottom();
+    }
+
+    function addTypingIndicator() {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message bot typing';
+        msgDiv.id = 'typingIndicator';
+        
+        msgDiv.innerHTML = `
+            <div class="avatar"><i class="ri-robot-2-line"></i></div>
+            <div class="message-content">
+                <p class="typing-indicator">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </p>
+            </div>
+        `;
+        
+        chatMessages.appendChild(msgDiv);
+        scrollToBottom();
+        return msgDiv;
+    }
+
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function escapeHTML(str) {
+        return str.replace(/[&<>'"]/g, 
+            tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag])
+        );
+    }
+
+    async function sendMessage() {
+        const text = userInput.value.trim();
+        if (!text) return;
+
+        // Reset input
+        userInput.value = '';
+        userInput.style.height = 'auto';
+        sendBtn.setAttribute('disabled', 'true');
+
+        // UI Updates
+        addUserMessage(text);
+        const typingIndicator = addTypingIndicator();
+
+        try {
+            // API Call to n8n Webhook
+            const response = await fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    sessionId: SESSION_ID,
+                    chatInput: text,
+                    team: teamParam
+                })
+            });
+
+            // 안전하게 텍스트로 먼저 받은 후 JSON 파싱 시도
+            const rawText = await response.text();
+            
+            // Remove typing indicator
+            typingIndicator.remove();
+
+            if (!rawText || rawText.trim() === '') {
+                addBotMessage('⚠️ 서버가 빈 응답을 반환했습니다. 잠시 후 다시 시도해주세요.');
+                return;
+            }
+
+            let data;
+            try {
+                data = JSON.parse(rawText);
+            } catch (parseErr) {
+                // JSON이 아닌 경우 텍스트 자체를 응답으로 사용
+                console.warn('Non-JSON response:', rawText.substring(0, 200));
+                addBotMessage(rawText);
+                return;
+            }
+
+            // Extract the output from n8n response
+            const reply = data.output || data.text || data.message || "죄송합니다. 적절한 응답을 찾지 못했습니다.";
+            addBotMessage(reply);
+
+            // Dynamically refresh reference manuals list after message exchange to capture any learning updates!
+            fetchManuals();
+
+        } catch (error) {
+            console.error('Error calling webhook:', error);
+            typingIndicator.remove();
+            
+            if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                addBotMessage('⚠️ 서버에 연결할 수 없습니다. n8n 워크플로우가 실행 중이고 Webhook URL이 올바른지 설정 패널(우측 상단 톱니바퀴)에서 확인해주세요.');
+            } else {
+                addBotMessage('⚠️ 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+            }
+        }
+    }
+});
+
+</script>
+</body>
+</html>

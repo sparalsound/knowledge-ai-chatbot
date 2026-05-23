@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <i class="${iconClass}"></i>
                 </div>
                 <div class="manual-info">
-                    <span class="manual-name" title="${escapeHTML(manual.name)}">${escapeHTML(manual.name)}</span>
+                    <span class="manual-name" data-tooltip="${escapeHTML(manual.name)}" title="${escapeHTML(manual.name)}">${escapeHTML(manual.name)}</span>
                     <div class="manual-meta">
                         <span class="status-indicator" title="학습 완료"></span>
                         <span style="font-size: 0.7rem; opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;" title="${escapeHTML(manual.file)}">${escapeHTML(manual.file)}</span>
