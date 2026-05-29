@@ -27,3 +27,11 @@ exec_detail_utf8.json
 node_modules/
 # 백업 JSON 파일들 제외
 *backup*.json
+
+# 예외적으로 깃허브에 올려 공유할 스크립트 파일들
+!scratch_gemini_ingest_v2.py
+!scratch_gemini_server_v2.py
+
+# 비밀 정보 로컬 파일
+secrets.json
+
